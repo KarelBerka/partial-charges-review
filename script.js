@@ -137,10 +137,12 @@ function renderChart(data) {
     // Group data into clusters
     const clusters = {};
     data.forEach((method, index) => {
-        // Group by 1 decimal precision to compact very close items
-        const cx = Math.round(method.chartCoord.x * 10) / 10;
-        const cy = Math.round(method.chartCoord.y * 10) / 10;
-        const key = `${cx},${cy}`;
+        // Group by 0.25 precision to compact points slightly more aggressively
+        const cx = Math.round(method.chartCoord.x * 4) / 4;
+        const cy = Math.round(method.chartCoord.y * 4) / 4;
+        const quality = method.qualityLevel || 'basic';
+        // Only group if they share the same quality level (background color)
+        const key = `${cx},${cy},${quality}`;
         
         if (!clusters[key]) {
             clusters[key] = {
