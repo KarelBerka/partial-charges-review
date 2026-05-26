@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partial Charge Methods Comparison</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-btn:hover {
+            background: rgba(148, 163, 184, 0.1);
+        }
+        .filter-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+</head>
+<body>
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <h1>Partial Charge Calculation Methods</h1>
+            <p>An interactive comparison of computational approaches for determining partial atomic charges.</p>
+        </header>
+
+        <div class="chart-legend" style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 12px; height: 12px; border-radius: 50%; background: rgba(16, 185, 129, 0.7); border: 2px solid rgba(16, 185, 129, 1);"></span> High Quality (Accurate/Rigorous QM)</div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 12px; height: 12px; border-radius: 50%; background: rgba(59, 130, 246, 0.7); border: 2px solid rgba(59, 130, 246, 1);"></span> Moderate (Standard Empirical)</div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 12px; height: 12px; border-radius: 50%; background: rgba(245, 158, 11, 0.7); border: 2px solid rgba(245, 158, 11, 1);"></span> Basic (Low Accuracy/Fast)</div>
+        </div>
+
+        <div class="chart-container" style="position: relative; height:600px; width:100%; margin-bottom: 3rem; background: var(--surface-color); border-radius: 16px; padding: 1rem; border: 1px solid var(--border-color); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);">
+            <canvas id="clusteringMap"></canvas>
+        </div>
+
+        <div class="glass-container">
+            <div class="controls-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div class="category-filters" id="categoryFilters" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <button class="filter-btn active" data-category="all">All Categories</button>
+                    <button class="filter-btn" data-category="Quantum Analysis">Quantum</button>
+                    <button class="filter-btn" data-category="MD - Biomolecular">Bio MD</button>
+                    <button class="filter-btn" data-category="MD - Materials">Materials MD</button>
+                    <button class="filter-btn" data-category="Cheminformatics">Cheminformatics</button>
+                    <button class="filter-btn" data-category="Reactivity">Reactivity</button>
+                    <button class="filter-btn" data-category="Machine Learning">Machine Learning</button>
+                </div>
+                
+                <div class="search-box" style="margin-bottom: 0;">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search by name, type, use case...">
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+            <table id="methodsTable">
+                <thead>
+                    <tr>
+                        <th data-sort="method">Method <i class="fa-solid fa-sort"></i></th>
+                        <th data-sort="speed">Speed <i class="fa-solid fa-sort"></i></th>
+                        <th data-sort="coverage">Coverage <i class="fa-solid fa-sort"></i></th>
+                        <th data-sort="conformation">Conformation <i class="fa-solid fa-sort"></i></th>
+                        <th data-sort="quality">Quality <i class="fa-solid fa-sort"></i></th>
+                        <th data-sort="reaction">Reactivity <i class="fa-solid fa-sort"></i></th>
+                        <th data-sort="citations">Usage <i class="fa-solid fa-sort"></i></th>
+                        <th>Typical Use</th>
+                        <th>Resources</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Rows will be populated by JS -->
+                </tbody>
+            </table>
+        </div>
+        </div> <!-- Close glass-container -->
+    </main>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
