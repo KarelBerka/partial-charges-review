@@ -18,15 +18,17 @@ This project is an interactive, comprehensive visual database and review of over
 ### DOI Link Validation
 All DOIs for the ~107 methods have been strictly validated. Broken or dead DOIs from legacy publications have been safely labeled as `"N/A"` to ensure a smooth, error-free browsing experience.
 
-### Expanded Methodology (Radka Svobodová Group)
-The database has been expanded to prominently include the extensive parameterization work and tools developed by Radka Svobodová's computational chemistry group at Masaryk University (CEITEC/NCBR):
-1. **EEM_Mulliken (NEEMP)**: EEM specifically parameterized to reproduce Mulliken charges.
-2. **EEM_NPA (NEEMP)**: EEM parameterized to reproduce high-quality NPA charges.
-3. **EEM_AIM (NEEMP)**: EEM parameterized to emulate QTAIM/Bader charges.
-4. **SQE+qp**: Split-Charge Equilibration with parameterized initial charges for proteins.
-5. **ACKS2**: Atom-condensed Kohn-Sham DFT approximated to second order.
-6. **PDBCharges (GFN1-xTB)**: Pre-computed high-quality QM charges for the entire Protein Data Bank.
-7. **αCharges (SQE+qp)**: Fast empirical charge calculation for AlphaFold predicted structures.
+### Method Categorization & Criteria
+To help researchers easily navigate the massive landscape of partial charge calculation algorithms, each method is rigorously classified across several axes:
+1. **Application Category**: 
+   * **Quantum Analysis**: High-level QM partitioning (e.g., QTAIM, Hirshfeld).
+   * **MD - Biomolecular**: Empirical methods optimized for proteins/nucleic acids (e.g., AMBER, CHARMM, SQE+qp).
+   * **MD - Materials**: Methods for solid-state and materials science (e.g., REAXFF, EEM).
+   * **Cheminformatics**: Extremely fast descriptor-based or 2D methods (e.g., PEOE, Gasteiger).
+   * **Reactivity**: Methods focusing on nucleophilic/electrophilic indices (e.g., Fukui functions).
+   * **Machine Learning**: Modern neural network potentials and ML property predictors (e.g., ALIGNN, SchNet, ANI).
+2. **Computational Speed**: Categorized as *O(1)* to *O(N³)* to reflect the computational scaling.
+3. **Quality Level**: Broadly categorized into High (QM-equivalent), Moderate (Empirical/Semi-empirical approximations), and Basic (Topological/Heuristic) to ensure comparisons are physically meaningful.
 
 ### UI Enhancements
 - **Clustering**: The interactive scatter plot now strictly isolates method clusters by their quality level (background color), guaranteeing that High, Moderate, and Basic quality methods never visually tangle.

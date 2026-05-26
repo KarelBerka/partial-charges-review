@@ -75,6 +75,7 @@ function renderMethodDetails(method) {
             <div class="detail-meta">
                 <span class="badge ${getBadgeClass(method.type)}">${method.type}</span>
                 <span style="display:inline-block; padding:0.35rem 0.75rem; border-radius:6px; font-size:0.85rem; font-weight:600; color:white; background-color:${catColor};">${method.category}</span>
+                <span style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.35rem 0.75rem; border-radius:6px; font-size:0.85rem; font-weight:600; color:var(--text-secondary); background:rgba(148, 163, 184, 0.1);"><i class="fa-regular fa-calendar"></i> ${method.year || 'N/A'}</span>
             </div>
         </div>
 
