@@ -162,13 +162,21 @@ function renderChart(data) {
             let expandedY = cluster.baseY;
             
             if (count > 1) {
-                // Calculate position in a circle
-                const radiusX = Math.min(0.2 + (count * 0.03), 0.6); 
-                const radiusY = Math.min(0.2 + (count * 0.03), 0.6) * 0.5; // Scale Y down to account for aspect ratio roughly
-                const angle = (i / count) * 2 * Math.PI - Math.PI/2;
+                // Fermat's spiral (sunflower) for beautiful "flower petal" packing
+                const phi = (1 + Math.sqrt(5)) / 2;
+                const goldenAngle = 2 * Math.PI / Math.pow(phi, 2); // 137.5 degrees
                 
-                expandedX = cluster.baseX + radiusX * Math.cos(angle);
-                expandedY = cluster.baseY + radiusY * Math.sin(angle);
+                const angle = i * goldenAngle;
+                
+                // Scale factor based on total items to keep it contained
+                const targetMaxRadiusX = Math.min(0.25 + Math.sqrt(count) * 0.15, 1.5);
+                const c = targetMaxRadiusX / Math.sqrt(count);
+                
+                const rX = c * Math.sqrt(i + 1);
+                const rY = rX * 0.6; // Adjust for typical screen aspect ratio
+                
+                expandedX = cluster.baseX + rX * Math.cos(angle);
+                expandedY = cluster.baseY + rY * Math.sin(angle);
             }
 
             let bgColor = 'rgba(245, 158, 11, 0.7)'; // Basic - Amber
@@ -199,7 +207,7 @@ function renderChart(data) {
                 backgroundColor: bgColor,
                 borderColor: borderColor,
                 borderWidth: 2,
-                pointRadius: count > 1 ? 10 : 8,
+                pointRadius: count > 1 ? 14 : 8,
                 pointHoverRadius: 12
             });
         });
@@ -222,20 +230,49 @@ function renderChart(data) {
                 intersect: false,
             },
             onHover: (event, elements, chart) => {
-                let targetClusterId = null;
+                const triggerRadius = 40; // Pixels to trigger opening a cluster
+                const keepOpenRadius = 130; // Pixels to keep it open while hovering petals
                 
-                // Check if we are hovering over an element
-                if (elements && elements.length > 0) {
-                    const datasetIndex = elements[0].datasetIndex;
-                    const ds = chart.data.datasets[datasetIndex];
-                    if (ds.isCluster) {
-                        targetClusterId = ds.clusterId;
+                // Cache cluster centers to calculate absolute distance
+                if (!chart._clusterCenters) {
+                    chart._clusterCenters = {};
+                    chart.data.datasets.forEach(ds => {
+                        if (ds.isCluster && !chart._clusterCenters[ds.clusterId]) {
+                            chart._clusterCenters[ds.clusterId] = { x: ds.baseX, y: ds.baseY };
+                        }
+                    });
+                }
+
+                let nextClusterId = null;
+
+                // 1. Check if we should keep the currently hovered cluster open
+                if (currentHoveredCluster && chart._clusterCenters[currentHoveredCluster]) {
+                    const center = chart._clusterCenters[currentHoveredCluster];
+                    const pixelX = chart.scales.x.getPixelForValue(center.x);
+                    const pixelY = chart.scales.y.getPixelForValue(center.y);
+                    const dist = Math.sqrt(Math.pow(event.x - pixelX, 2) + Math.pow(event.y - pixelY, 2));
+                    if (dist < keepOpenRadius) {
+                        nextClusterId = currentHoveredCluster;
                     }
                 }
-                
-                // If hover state changed
-                if (targetClusterId !== currentHoveredCluster) {
-                    currentHoveredCluster = targetClusterId;
+
+                // 2. If no cluster is kept open, check for new ones to open
+                if (!nextClusterId) {
+                    let minDistance = triggerRadius;
+                    for (const [cId, center] of Object.entries(chart._clusterCenters)) {
+                        const pixelX = chart.scales.x.getPixelForValue(center.x);
+                        const pixelY = chart.scales.y.getPixelForValue(center.y);
+                        const dist = Math.sqrt(Math.pow(event.x - pixelX, 2) + Math.pow(event.y - pixelY, 2));
+                        if (dist < minDistance) {
+                            nextClusterId = cId;
+                            minDistance = dist;
+                        }
+                    }
+                }
+
+                // 3. Apply state changes if needed
+                if (nextClusterId !== currentHoveredCluster) {
+                    currentHoveredCluster = nextClusterId;
                     
                     chart.data.datasets.forEach(ds => {
                         if (currentHoveredCluster && ds.clusterId === currentHoveredCluster) {
@@ -243,15 +280,17 @@ function renderChart(data) {
                             ds.data[0].x = ds.expandedX;
                             ds.data[0].y = ds.expandedY;
                             ds.label = ds.originalName;
+                            ds.pointRadius = 8; // Normal size for expanded petals
                         } else {
                             // Collapse
                             ds.data[0].x = ds.baseX;
                             ds.data[0].y = ds.baseY;
                             ds.label = ds.clusterName;
+                            ds.pointRadius = ds.isCluster ? 14 : 8; // Larger size for collapsed cluster core
                         }
                     });
                     
-                    chart.update('none'); // Update without animation for instant snap
+                    chart.update('none'); // Instant update without animation
                 }
             },
             responsive: true,
