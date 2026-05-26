@@ -14,7 +14,7 @@
     { name: "Bader (QTAIM)", category: "Quantum Analysis", type: "Density Partitioning (QM)", speedLevel: "slow", speedText: "Very Slow - O(NÂł) + integration", coverage: "Universal", conformation: "3D - Highly responsive", quality: "High (Rigorous topology)", qualityLevel: "high", reaction: "Excellent (Bond Critical Points)", reactionLevel: "excellent", citations: 45000, use: "Rigorous theoretical analysis of bonding topology and charge density.", chartCoord: {x: 5.4, y: 3.2}, doi: "10.1021/ja00482a013",
         year: "1978", repo: "http://theory.cm.utexas.edu/henkelman/code/bader/", repoName: "Bader Tools", webserver: "N/A", webserverName: "N/A" },
     { name: "Gasteiger (PEOE)", category: "Cheminformatics", type: "Empirical", speedLevel: "fast", speedText: "Extremely Fast - O(N)", coverage: "Limited (Organic elements mostly)", conformation: "2D - Topology based", quality: "Basic (Rough approximation)", qualityLevel: "basic", reaction: "Fair (Fast proxy for chemoinformatics)", reactionLevel: "fair", citations: 6000, use: "High-throughput screening, cheminformatics, QSAR modeling for small organics.", chartCoord: {x: 1.0, y: 1.0}, doi: "10.1016/0040-4020(80)80168-2",
-        year: "1980", repo: "https://github.com/rdkit/rdkit", repoName: "RDKit", webserver: "https://acc.ncbr.muni.cz/", webserverName: "ACC Web" },
+        year: "1980", repo: "https://github.com/rdkit/rdkit", repoName: "RDKit", webserver: "https://acc.biodata.ceitec.cz/", webserverName: "ACC Web" },
     { name: "MMFF94", category: "Cheminformatics", type: "Empirical (Force Field)", speedLevel: "fast", speedText: "Extremely Fast - O(N)", coverage: "Broad (Organic elements)", conformation: "2D - Topology based", quality: "Moderate (Standard empirical)", qualityLevel: "moderate", reaction: "Poor (Force field parameter)", reactionLevel: "poor", citations: 8000, use: "Molecular mechanics, conformational searching, rapid screening.", chartCoord: {x: 1.2, y: 1.2}, doi: "10.1002/(SICI)1096-987X(199604)17:5/6<490::AID-JCC1>3.0.CO;2-P",
         year: "1996", repo: "https://github.com/rdkit/rdkit", repoName: "RDKit", webserver: "https://chemicalize.com/", webserverName: "Chemicalize" },
     { name: "GNN / ML (e.g., DASH)", category: "Machine Learning", type: "Machine Learning", speedLevel: "fast", speedText: "Fast - Inference", coverage: "Varies (Depends on training set)", conformation: "2D - Topology based", quality: "High (If trained on high-level QM)", qualityLevel: "high", reaction: "Good (Site prediction via ML features)", reactionLevel: "good", citations: 150, use: "Predicting high-level QM charges directly from 2D molecular graphs for massive libraries.", chartCoord: {x: 1.4, y: 1.0}, doi: "10.1021/acs.jcim.1c00650",
@@ -24,13 +24,13 @@
     { name: "EQeq", category: "MD - Materials", type: "Empirical", speedLevel: "fast", speedText: "Very Fast - near O(N)", coverage: "Broad (Improved for periodic)", conformation: "3D - Highly responsive", quality: "Moderate (Standard empirical)", qualityLevel: "moderate", reaction: "Fair (Polarizability proxy)", reactionLevel: "fair", citations: 500, use: "Large-scale MD, specifically improved for periodic systems and MOFs.", chartCoord: {x: 1.6, y: 3.0}, doi: "10.1021/jz3008485",
         year: "2012", repo: "https://github.com/danieleongari/EQeq", repoName: "EQeq", webserver: "N/A", webserverName: "N/A" },
     { name: "EEM", category: "Cheminformatics", type: "Empirical", speedLevel: "fast", speedText: "Fast - O(NÂł) empirical", coverage: "Broad (Depends on parametrization)", conformation: "3D - Highly responsive", quality: "Moderate (Standard empirical)", qualityLevel: "moderate", reaction: "Fair (Electronegativity proxy)", reactionLevel: "fair", citations: 2500, use: "Electronegativity Equalization Method for fast charges of large biomolecules/proteins.", chartCoord: {x: 2.4, y: 3.0}, doi: "10.1021/ja00258a010",
-        year: "1987", repo: "https://acc.ncbr.muni.cz/", repoName: "ACC 3", webserver: "https://acc.ncbr.muni.cz/", webserverName: "ACC Web" },
+        year: "1987", repo: "https://acc.biodata.ceitec.cz/", repoName: "ACC 3", webserver: "https://acc.biodata.ceitec.cz/", webserverName: "ACC Web" },
     { name: "CM5", category: "Quantum Analysis", type: "Density Partitioning (QM)", speedLevel: "slow", speedText: "Moderate - Scales with QM O(NÂł)", coverage: "Universal", conformation: "3D - Highly responsive", quality: "High (Accurate dipoles)", qualityLevel: "high", reaction: "Good (Dipoles & General Reactivity)", reactionLevel: "good", citations: 3000, use: "Highly accurate dipole moments, consistent across basis sets, general molecular modeling.", chartCoord: {x: 4.4, y: 2.8}, doi: "10.1021/ct200866d",
         year: "2012", repo: "http://sobereva.com/multiwfn/", repoName: "Multiwfn", webserver: "https://www.webmo.net/", webserverName: "WebMO" },
     { name: "AM1-BCC", category: "MD - Biomolecular", type: "Empirical (Semi-empirical)", speedLevel: "fast", speedText: "Fast - Semi-empirical", coverage: "Broad (Organic/drug-like mostly)", conformation: "3D - Stable / Corrected", quality: "Moderate (Standard empirical)", qualityLevel: "moderate", reaction: "Poor (Force field parameter)", reactionLevel: "poor", citations: 6500, use: "Standard for ligand preparation in AMBER, very fast HF/6-31G* ESP emulation.", chartCoord: {x: 2.8, y: 3.1}, doi: "10.1002/jcc.10128",
         year: "2002", repo: "https://github.com/openforcefield/openff-toolkit", repoName: "OpenFF", webserver: "https://atb.uq.edu.au/", webserverName: "ATB Server" },
     { name: "SQE (Split-Charge Equilibration)", category: "MD - Materials", type: "Empirical", speedLevel: "fast", speedText: "Fast - O(NÂł) empirical", coverage: "Broad (Depends on parametrization)", conformation: "3D - Highly responsive", quality: "Moderate (Standard empirical)", qualityLevel: "moderate", reaction: "Fair (Bond polarizability proxy)", reactionLevel: "fair", citations: 250, use: "Bond-centric charge equilibration, improved molecular polarizability over EEM.", chartCoord: {x: 1.9, y: 2.8}, doi: "10.1063/1.2336428",
-        year: "2006", repo: "https://acc.ncbr.muni.cz/", repoName: "ACC 3", webserver: "https://acc.ncbr.muni.cz/", webserverName: "ACC Web" },
+        year: "2006", repo: "https://acc.biodata.ceitec.cz/", repoName: "ACC 3", webserver: "https://acc.biodata.ceitec.cz/", webserverName: "ACC Web" },
     { name: "MBIS (Minimal Basis Iterative Stockholder)", category: "Machine Learning", type: "Density Partitioning (QM)", speedLevel: "slow", speedText: "Slow - Scales with QM O(NÂł)", coverage: "Universal", conformation: "3D - Highly responsive", quality: "High (Robust & Accurate)", qualityLevel: "high", reaction: "Good (Charge transfer & general)", reactionLevel: "good", citations: 800, use: "High-quality reference charges for training ML models; highly robust density partitioning.", chartCoord: {x: 4.9, y: 3.1}, doi: "10.1021/acs.jctc.6b00456",
         year: "2016", repo: "https://github.com/theochem/horton", repoName: "Horton", webserver: "https://www.webmo.net/", webserverName: "WebMO" },
     { name: "LĂ¶wdin", category: "Quantum Analysis", type: "Orbital-Based (QM)", speedLevel: "slow", speedText: "Slow - Scales with QM O(NÂł)", coverage: "Universal", conformation: "3D - Highly responsive", quality: "Basic (Basis-dependent)", qualityLevel: "basic", reaction: "Fair (Historical proxy)", reactionLevel: "fair", citations: 20000, use: "Basic population analysis using orthogonalized basis functions; an improvement over Mulliken.", chartCoord: {x: 3.5, y: 2.6}, doi: "10.1063/1.1747632",
@@ -215,7 +215,7 @@
         year: "2015",
         repo: "https://github.com/ncbr.muni.cz/neemp",
         repoName: "NEEMP GitHub",
-        webserver: "https://acc.ncbr.muni.cz/",
+        webserver: "https://acc.biodata.ceitec.cz/",
         webserverName: "Atomic Charge Calculator",
         chartCoord: { x: 1, y: 3 },
         description: "An Electronegativity Equalization Method (EEM) parameterization from the Svobodová group designed specifically to rapidly reproduce quantum mechanical Mulliken charges using the NEEMP software."
@@ -238,7 +238,7 @@
         year: "2015",
         repo: "https://github.com/ncbr.muni.cz/neemp",
         repoName: "NEEMP GitHub",
-        webserver: "https://acc.ncbr.muni.cz/",
+        webserver: "https://acc.biodata.ceitec.cz/",
         webserverName: "Atomic Charge Calculator",
         chartCoord: { x: 1, y: 3 },
         description: "An Electronegativity Equalization Method (EEM) parameterization targeted to reproduce higher-quality Natural Population Analysis (NPA) charges. Parameterized by the Svobodová group for improved accuracy."
@@ -261,7 +261,7 @@
         year: "2015",
         repo: "https://github.com/ncbr.muni.cz/neemp",
         repoName: "NEEMP GitHub",
-        webserver: "https://acc.ncbr.muni.cz/",
+        webserver: "https://acc.biodata.ceitec.cz/",
         webserverName: "Atomic Charge Calculator",
         chartCoord: { x: 1, y: 3 },
         description: "An EEM parameterization created by the Svobodová group aiming to rapidly emulate Quantum Theory of Atoms in Molecules (QTAIM/Bader) charges for large datasets."
@@ -284,7 +284,7 @@
         year: "N/A",
         repo: "N/A",
         repoName: "N/A",
-        webserver: "https://acc.ncbr.muni.cz/",
+        webserver: "https://acc.biodata.ceitec.cz/",
         webserverName: "Atomic Charge Calculator II",
         chartCoord: { x: 1, y: 3 },
         description: "Split-Charge Equilibration with parameterized initial charges (SQE+qp), developed by the Svobodová group to accurately reproduce QM charges across large biomolecular systems like proteins and peptides."
@@ -307,7 +307,7 @@
         year: "N/A",
         repo: "N/A",
         repoName: "N/A",
-        webserver: "https://acc.ncbr.muni.cz/",
+        webserver: "https://acc.biodata.ceitec.cz/",
         webserverName: "Atomic Charge Calculator II",
         chartCoord: { x: 2, y: 3 },
         description: "Atom-condensed Kohn-Sham DFT approximated to second order (ACKS2). Evaluated and implemented by the Svobodová group for fast calculation of charge distribution responding to external potentials."
@@ -359,4 +359,5 @@
         description: "A specialized tool developed by the Svobodová group to rapidly assign partial atomic charges to computationally predicted protein structures from the AlphaFold Protein Structure Database using the empirical SQE+qp method."
     }
 ];
+
 
