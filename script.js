@@ -131,6 +131,9 @@ function renderTable(data) {
         `;
         tableBody.appendChild(tr);
     });
+    if (typeof updateFloatingScrollbar === 'function') {
+        requestAnimationFrame(updateFloatingScrollbar);
+    }
 }
 
 function renderChart(data) {
@@ -533,4 +536,65 @@ headers.forEach(header => {
             
         sortData(column, currentSort.direction);
     });
+});
+
+// Floating scrollbar implementation for large table scrolling accessibility
+let scrollbarContainer, scrollbarContent;
+let isSyncingScroll = false;
+const tableWrapper = document.querySelector('.table-wrapper');
+
+if (tableWrapper) {
+    scrollbarContainer = document.createElement('div');
+    scrollbarContainer.className = 'floating-scrollbar-container';
+    scrollbarContent = document.createElement('div');
+    scrollbarContent.className = 'floating-scrollbar-content';
+    scrollbarContainer.appendChild(scrollbarContent);
+    document.body.appendChild(scrollbarContainer);
+
+    scrollbarContainer.addEventListener('scroll', () => {
+        if (isSyncingScroll) {
+            isSyncingScroll = false;
+            return;
+        }
+        isSyncingScroll = true;
+        tableWrapper.scrollLeft = scrollbarContainer.scrollLeft;
+    });
+
+    tableWrapper.addEventListener('scroll', () => {
+        if (isSyncingScroll) {
+            isSyncingScroll = false;
+            return;
+        }
+        isSyncingScroll = true;
+        scrollbarContainer.scrollLeft = tableWrapper.scrollLeft;
+    });
+}
+
+function updateFloatingScrollbar() {
+    if (!tableWrapper || !scrollbarContainer || !scrollbarContent) return;
+    
+    const rect = tableWrapper.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    
+    const hasHorizontalOverflow = tableWrapper.scrollWidth > tableWrapper.clientWidth;
+    const isTableVisible = rect.top < viewportHeight && rect.bottom > viewportHeight;
+    
+    if (hasHorizontalOverflow && isTableVisible) {
+        scrollbarContainer.style.left = `${rect.left}px`;
+        scrollbarContainer.style.width = `${rect.width}px`;
+        scrollbarContent.style.width = `${tableWrapper.scrollWidth}px`;
+        scrollbarContainer.style.display = 'block';
+        
+        isSyncingScroll = true;
+        scrollbarContainer.scrollLeft = tableWrapper.scrollLeft;
+    } else {
+        scrollbarContainer.style.display = 'none';
+    }
+}
+
+window.addEventListener('scroll', updateFloatingScrollbar);
+window.addEventListener('resize', updateFloatingScrollbar);
+// Initialize the scrollbar positioning once page is loaded
+window.addEventListener('load', () => {
+    requestAnimationFrame(updateFloatingScrollbar);
 });

@@ -33,7 +33,7 @@ To help researchers easily navigate the massive landscape of partial charge calc
 ### UI & Database Enhancements
 - **Clustering**: The interactive scatter plot now strictly isolates method clusters by their quality level (background color), guaranteeing that High, Moderate, and Basic quality methods never visually tangle.
 - **ACC III Upgrade & CLI Integration**: References to the Atomic Charge Calculator have been upgraded to the latest **ACC III** platform. For relevant empirical methods (EEM, SQE, ACKS2, etc.), external resources now include direct links to Tomáš Raček's **ChargeFW2 (CLI)** command-line engine on GitHub, which serves as the binary backend for ACC III.
-- **Aesthetics & Responsiveness**: A premium glassmorphism UI styled with CSS media queries and responsive canvas ticks, ensuring perfect readability and interactive charts on mobile, tablet, and desktop screens. Features a custom `q+` SVG favicon for high-DPI crispness.
+- **Aesthetics & Responsiveness**: A premium glassmorphism UI styled with CSS media queries and responsive canvas ticks, ensuring perfect readability and interactive charts on mobile, tablet, and desktop screens. Features a custom `q+` SVG favicon for high-DPI crispness, and a dynamic **floating scrollbar** that overlay-scrolls the large method table horizontally from anywhere in the viewport when it overflows.
 
 ## Local Development
 

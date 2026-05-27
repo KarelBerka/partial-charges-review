@@ -26,6 +26,7 @@ I have successfully implemented all requirements. Below is a detailed walkthroug
     - **Dynamic Chart Tick Labels**: In `script.js`, scale callbacks dynamically inspect the screen size to render shorter labels (e.g. `O(N)` instead of `O(N) (Extremely Fast)`, `3D Resp.` instead of `3D Highly Responsive`) to prevent overlapping ticks on mobile screens.
     - **Profile Grid**: The 6-card grid wraps cleanly into a 1-column layout on phones and 2-column on tablets.
     - **Outbound Link Buttons**: Buttons expand to full width on mobile viewports for enhanced touch ergonomics.
+    - **Floating Scrollbar**: Automatically renders a dynamic horizontal scrollbar floating at the bottom of the screen when the methods table overflows horizontally, allowing the user to slide the table at any height.
 
 ## Verification & Deployment
 1. **Layout & Interaction**:
