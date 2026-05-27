@@ -119,6 +119,9 @@ function renderMethodDetails(method) {
     if (method.repo && method.repo !== "N/A") {
         linksHTML += `<a href="${method.repo}" target="_blank" class="btn btn-secondary"><i class="fa-brands fa-github"></i> ${method.repoName}</a>`;
     }
+    if (method.cliRepo && method.cliRepo !== "N/A") {
+        linksHTML += `<a href="${method.cliRepo}" target="_blank" class="btn btn-secondary"><i class="fa-solid fa-terminal"></i> ${method.cliRepoName}</a>`;
+    }
     if (method.webserver && method.webserver !== "N/A") {
         linksHTML += `<a href="${method.webserver}" target="_blank" class="btn btn-secondary"><i class="fa-solid fa-globe"></i> ${method.webserverName}</a>`;
     }
@@ -141,6 +144,15 @@ function renderMethodDetails(method) {
                 </div>
             </div>
         `;
+    }
+
+    let descriptionHTML = '';
+    if (method.description) {
+        descriptionHTML = `
+        <div class="detail-card" style="margin-bottom: 2.5rem; background: rgba(255, 255, 255, 0.8);">
+            <h3><i class="fa-solid fa-circle-info" style="color: var(--accent-color);"></i> Description</h3>
+            <p style="line-height: 1.6; font-size: 1.15rem; color: var(--text-primary);">${method.description}</p>
+        </div>`;
     }
 
     contentDiv.innerHTML = `
@@ -184,6 +196,8 @@ function renderMethodDetails(method) {
                 <p>${method.coverage}</p>
             </div>
         </div>
+        
+        ${descriptionHTML}
         
         <div class="detail-card" style="margin-bottom: 2.5rem; background: rgba(255, 255, 255, 0.8);">
             <h3><i class="fa-solid fa-align-left" style="color: var(--text-secondary);"></i> Typical Use Case</h3>

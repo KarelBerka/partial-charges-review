@@ -286,12 +286,165 @@ tbody tr:last-child td {
     to { opacity: 1; }
 }
 
+/* Glassmorphism Container */
+.glass-container {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+}
+
+.details-container {
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+/* Chart Container styling */
+.chart-container {
+    position: relative;
+    height: 600px;
+    width: 100%;
+    margin-bottom: 3rem;
+    background: var(--surface-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(16px);
+    transition: all 0.3s ease;
+}
+
+/* Controls Layout */
+.controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.category-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+    .container {
+        padding: 2rem 1rem;
+    }
+    
+    .chart-container {
+        height: 500px;
+    }
+}
+
 @media (max-width: 768px) {
-    .table-wrapper {
-        overflow-x: auto;
+    .glass-container {
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+    
+    .details-container {
+        margin: 20px auto;
+        padding: 1.5rem;
+    }
+    
+    .chart-container {
+        height: 400px;
+        padding: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    
+    .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .category-filters {
+        justify-content: flex-start;
+    }
+    
+    .search-box {
+        max-width: none;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .detail-title {
+        font-size: 2rem;
+    }
+    
+    .links-section {
+        padding: 1.25rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 0.75rem;
+        justify-content: center;
     }
     
     header h1 {
         font-size: 2rem;
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+    }
+    
+    .chart-legend {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding-left: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-container {
+        height: 320px;
+    }
+    
+    .glass-container {
+        padding: 1rem;
+    }
+    
+    header h1 {
+        font-size: 1.6rem;
+    }
+    
+    header p {
+        font-size: 0.95rem;
+    }
+    
+    .filter-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
     }
 }

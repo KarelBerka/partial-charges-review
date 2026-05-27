@@ -83,6 +83,12 @@ function renderTable(data) {
                 <i class="fa-solid fa-code" style="margin-right: 4px;"></i> ${method.repoName}
             </a>`;
         }
+        if (method.cliRepo && method.cliRepo !== "N/A") {
+            linksHTML += `
+            <a href="${method.cliRepo}" target="_blank" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">
+                <i class="fa-solid fa-terminal" style="margin-right: 4px; font-size: 0.75rem;"></i> ${method.cliRepoName}
+            </a>`;
+        }
         if (method.webserver && method.webserver !== "N/A") {
             linksHTML += `
             <a href="${method.webserver}" target="_blank" style="color: var(--success-color); text-decoration: none; font-size: 0.85rem; display: block;">
@@ -389,9 +395,10 @@ function renderChart(data) {
                     },
                     ticks: {
                         callback: function(value) {
-                            if (value === 1) return 'O(N) (Extremely Fast)';
+                            const isSmallScreen = window.innerWidth < 768;
+                            if (value === 1) return isSmallScreen ? 'O(N) (Fast)' : 'O(N) (Extremely Fast)';
                             if (value === 3) return 'Moderate';
-                            if (value === 5) return 'O(N³)+ (Very Slow)';
+                            if (value === 5) return isSmallScreen ? 'O(N³)+ (Slow)' : 'O(N³)+ (Very Slow)';
                             return '';
                         }
                     }
@@ -409,9 +416,10 @@ function renderChart(data) {
                     },
                     ticks: {
                         callback: function(value) {
+                            const isSmallScreen = window.innerWidth < 768;
                             if (value === 1) return '2D Topology';
-                            if (value === 2) return '3D Restrained';
-                            if (value === 3) return '3D Highly Responsive';
+                            if (value === 2) return isSmallScreen ? '3D Restr.' : '3D Restrained';
+                            if (value === 3) return isSmallScreen ? '3D Resp.' : '3D Highly Responsive';
                             return '';
                         }
                     }

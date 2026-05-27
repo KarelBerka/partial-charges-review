@@ -54,13 +54,13 @@
             <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="width: 12px; height: 12px; border-radius: 50%; background: rgba(245, 158, 11, 0.7); border: 2px solid rgba(245, 158, 11, 1);"></span> Basic (Low Accuracy/Fast)</div>
         </div>
 
-        <div class="chart-container" style="position: relative; height:600px; width:100%; margin-bottom: 3rem; background: var(--surface-color); border-radius: 16px; padding: 1rem; border: 1px solid var(--border-color); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);">
+        <div class="chart-container">
             <canvas id="clusteringMap"></canvas>
         </div>
 
         <div class="glass-container">
-            <div class="controls-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-                <div class="category-filters" id="categoryFilters" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            <div class="controls-row">
+                <div class="category-filters" id="categoryFilters">
                     <button class="filter-btn active" data-category="all">All Categories</button>
                     <button class="filter-btn" data-category="Quantum Analysis">Quantum</button>
                     <button class="filter-btn" data-category="MD - Biomolecular">Bio MD</button>
@@ -70,7 +70,7 @@
                     <button class="filter-btn" data-category="Machine Learning">Machine Learning</button>
                 </div>
                 
-                <div class="search-box" style="margin-bottom: 0;">
+                <div class="search-box">
                     <i class="fa-solid fa-search search-icon"></i>
                     <input type="text" id="searchInput" placeholder="Search by name, type, use case...">
                 </div>
