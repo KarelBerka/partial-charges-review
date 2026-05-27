@@ -1,4 +1,42 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Safe localStorage wrapper for environments that block localStorage (e.g., file:// protocol or private browsing)
+const safeLocalStorage = {
+    getItem: (key) => {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            return null;
+        }
+    },
+    setItem: (key, value) => {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            // Ignore quota or security exceptions
+        }
+    }
+};
+
+// Safe Promise.any fallback for compatibility with older browsers
+const safePromiseAny = Promise.any ? Promise.any.bind(Promise) : function(promises) {
+    return new Promise((resolve, reject) => {
+        let rejectedCount = 0;
+        const count = promises.length;
+        if (count === 0) {
+            reject(new Error("No promises provided"));
+            return;
+        }
+        promises.forEach(p => {
+            Promise.resolve(p).then(resolve).catch(err => {
+                rejectedCount++;
+                if (rejectedCount === count) {
+                    reject(new Error("All promises failed"));
+                }
+            });
+        });
+    });
+};
+
+function init() {
     const urlParams = new URLSearchParams(window.location.search);
     const methodName = urlParams.get('method');
     const contentDiv = document.getElementById('detailContent');
@@ -10,6 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // methodsData is loaded globally from data.js
+    if (typeof methodsData === 'undefined') {
+        showError("Database (data.js) failed to load.");
+        return;
+    }
+
     const method = methodsData.find(m => m.name === methodName);
 
     if (!method) {
@@ -18,17 +61,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     renderMethodDetails(method);
-    loadingDiv.style.display = 'none';
-    contentDiv.style.display = 'block';
-});
+    
+    if (loadingDiv) loadingDiv.style.display = 'none';
+    if (contentDiv) contentDiv.style.display = 'block';
+
+    if (method.doi && method.doi !== "N/A") {
+        loadBibliography(method);
+    }
+}
+
+// Safely execute init after DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 function showError(msg) {
     const loadingDiv = document.getElementById('loading');
-    loadingDiv.innerHTML = `
-        <i class="fa-solid fa-triangle-exclamation fa-3x" style="color: #ef4444; margin-bottom: 1rem;"></i>
-        <h2 style="color: var(--text-primary);">${msg}</h2>
-        <p style="color: var(--text-secondary); margin-top: 1rem;">Please return to the dashboard and try again.</p>
-    `;
+    if (loadingDiv) {
+        loadingDiv.innerHTML = `
+            <i class="fa-solid fa-triangle-exclamation fa-3x" style="color: #ef4444; margin-bottom: 1rem;"></i>
+            <h2 style="color: var(--text-primary);">${msg}</h2>
+            <p style="color: var(--text-secondary); margin-top: 1rem;">Please return to the dashboard and try again.</p>
+        `;
+    }
 }
 
 function getBadgeClass(type) {
@@ -37,6 +94,7 @@ function getBadgeClass(type) {
 
 function renderMethodDetails(method) {
     const contentDiv = document.getElementById('detailContent');
+    if (!contentDiv) return;
     
     let qColor = '#f59e0b'; // Basic
     if(method.qualityLevel === 'high') qColor = '#10b981';
@@ -67,6 +125,22 @@ function renderMethodDetails(method) {
     
     if (!linksHTML) {
         linksHTML = '<p style="color: var(--text-secondary);"><i class="fa-solid fa-circle-info"></i> No external links or repositories available for this method.</p>';
+    }
+
+    let bibliographyHTML = '';
+    if (method.doi && method.doi !== "N/A") {
+        const fallbackText = `${method.name} Publication. Year: ${method.year || 'N/A'}. DOI: <a href="https://doi.org/${method.doi}" target="_blank" style="color: var(--accent-color); text-decoration: none;">${method.doi} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem; margin-left: 2px;"></i></a>`;
+        
+        bibliographyHTML = `
+            <div class="bibliography-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(148, 163, 184, 0.2);">
+                <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 1.05rem;">
+                    <i class="fa-solid fa-quote-left" style="color: var(--accent-color); margin-right: 6px;"></i> Journal Citation
+                </h4>
+                <div id="citationText" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); background: rgba(255, 255, 255, 0.5); padding: 1rem; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.2);">
+                    ${fallbackText}
+                </div>
+            </div>
+        `;
     }
 
     contentDiv.innerHTML = `
@@ -119,6 +193,144 @@ function renderMethodDetails(method) {
         <div class="links-section">
             <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--text-primary); font-family: 'Outfit', sans-serif;">External Resources</h3>
             ${linksHTML}
+            ${bibliographyHTML}
         </div>
     `;
+}
+
+async function loadBibliography(method) {
+    const doi = method.doi;
+    const citationContainer = document.getElementById('citationText');
+    if (!citationContainer) return;
+    
+    const cacheKey = `citation_${doi}`;
+    const cached = safeLocalStorage.getItem(cacheKey);
+    if (cached) {
+        citationContainer.innerHTML = cached;
+        return;
+    }
+    
+    // Start Crossref and OpenAlex fetches in parallel using safePromiseAny
+    try {
+        const citation = await safePromiseAny([
+            fetchFromCrossref(doi).then(res => {
+                if (res) return res;
+                throw new Error("Crossref returned empty");
+            }),
+            fetchFromOpenAlex(doi).then(res => {
+                if (res) return res;
+                throw new Error("OpenAlex returned empty");
+            })
+        ]);
+        
+        citationContainer.innerHTML = citation;
+        safeLocalStorage.setItem(cacheKey, citation);
+    } catch (err) {
+        console.warn("Both bibliography sources failed or timed out. Keeping fallback.", err);
+    }
+}
+
+async function fetchFromCrossref(doi) {
+    try {
+        const response = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
+            headers: {
+                'User-Agent': 'PartialChargesReview/1.0 (mailto:karel.berka@upol.cz)'
+            }
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        const msg = data.message;
+        
+        let authorsStr = "";
+        if (msg.author && msg.author.length > 0) {
+            const formatted = msg.author.map(auth => {
+                const family = auth.family || "";
+                const given = auth.given || "";
+                const initials = given ? given.split(" ").map(n => n[0] + ".").join("") : "";
+                return family && initials ? `${family}, ${initials}` : family || given || "";
+            });
+            if (formatted.length > 5) {
+                authorsStr = formatted.slice(0, 3).join("; ") + " et al.";
+            } else {
+                authorsStr = formatted.join("; ");
+            }
+        }
+        
+        const title = msg.title ? msg.title[0] : "";
+        const journal = msg['container-title'] ? msg['container-title'][0] : "";
+        const year = msg.issued && msg.issued['date-parts'] && msg.issued['date-parts'][0] ? msg.issued['date-parts'][0][0] : "";
+        const volume = msg.volume || "";
+        const issue = msg.issue || "";
+        const pages = msg.page || "";
+        
+        let citationHTML = "";
+        if (authorsStr) citationHTML += `${authorsStr}. `;
+        if (title) citationHTML += `"${title}." `;
+        if (journal) citationHTML += `<em>${journal}</em>. `;
+        if (year) citationHTML += `<strong>${year}</strong>`;
+        if (volume) {
+            citationHTML += `, <em>${volume}</em>`;
+            if (issue) citationHTML += ` (${issue})`;
+        }
+        if (pages) citationHTML += `, ${pages}`;
+        citationHTML += `. <a href="https://doi.org/${doi}" target="_blank" style="color: var(--accent-color); text-decoration: none;"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8rem; margin-left: 4px;"></i></a>`;
+        
+        return citationHTML;
+    } catch (e) {
+        console.error("Crossref fetch error:", e);
+        return null;
+    }
+}
+
+async function fetchFromOpenAlex(doi) {
+    try {
+        const response = await fetch(`https://api.openalex.org/works/doi:${doi}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        
+        let authorsStr = "";
+        if (data.authorships && data.authorships.length > 0) {
+            const formatted = data.authorships.map(a => {
+                const name = a.author.display_name;
+                const parts = name.trim().split(/\s+/);
+                if (parts.length > 1) {
+                    const family = parts[parts.length - 1];
+                    const initials = parts.slice(0, -1).map(n => n[0] + ".").join("");
+                    return `${family}, ${initials}`;
+                }
+                return name;
+            });
+            if (formatted.length > 5) {
+                authorsStr = formatted.slice(0, 3).join("; ") + " et al.";
+            } else {
+                authorsStr = formatted.join("; ");
+            }
+        }
+        
+        const title = data.title || "";
+        const journal = data.primary_location && data.primary_location.source ? data.primary_location.source.display_name : "";
+        const year = data.publication_year || "";
+        const volume = data.biblio ? data.biblio.volume : "";
+        const issue = data.biblio ? data.biblio.issue : "";
+        const firstPage = data.biblio ? data.biblio.first_page : "";
+        const lastPage = data.biblio ? data.biblio.last_page : "";
+        const pages = firstPage && lastPage ? `${firstPage}-${lastPage}` : firstPage || "";
+        
+        let citationHTML = "";
+        if (authorsStr) citationHTML += `${authorsStr}. `;
+        if (title) citationHTML += `"${title}." `;
+        if (journal) citationHTML += `<em>${journal}</em>. `;
+        if (year) citationHTML += `<strong>${year}</strong>`;
+        if (volume) {
+            citationHTML += `, <em>${volume}</em>`;
+            if (issue) citationHTML += ` (${issue})`;
+        }
+        if (pages) citationHTML += `, ${pages}`;
+        citationHTML += `. <a href="https://doi.org/${doi}" target="_blank" style="color: var(--accent-color); text-decoration: none;"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8rem; margin-left: 4px;"></i></a>`;
+        
+        return citationHTML;
+    } catch (e) {
+        console.error("OpenAlex fetch error:", e);
+        return null;
+    }
 }

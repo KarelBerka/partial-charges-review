@@ -101,7 +101,7 @@ function renderTable(data) {
 
         tr.innerHTML = `
             <td>
-                <a href="details.html?method=${encodeURIComponent(method.name)}" class="method-name" style="color: var(--text-primary); text-decoration: none; font-weight: 700;">${method.name}</a>
+                <a href="details.html?method=${encodeURIComponent(method.name)}" class="method-link-box">${method.name}</a>
                 <div style="margin-top: 0.35rem;">
                     <span class="badge ${getBadgeClass(method.type)}">${method.type}</span>
                     <span style="display:inline-block; padding:0.2rem 0.4rem; border-radius:4px; font-size:0.7rem; font-weight:600; color:white; background-color:${catColor}; margin-left: 0.25rem;">${method.category}</span>
@@ -203,14 +203,15 @@ function renderChart(data) {
                 isCluster: count > 1,
                 originalName: method.name,
                 clusterName: clusterLabel,
+                itemIndex: i,
                 
                 label: clusterLabel,
                 data: [{ x: cluster.baseX, y: cluster.baseY }],
                 backgroundColor: bgColor,
                 borderColor: borderColor,
                 borderWidth: 2,
-                pointRadius: count > 1 ? 14 : 8,
-                pointHoverRadius: 12
+                pointRadius: count > 1 ? (i === 0 ? 14 : 0) : 8,
+                pointHoverRadius: count > 1 ? (i === 0 ? 14 : 10) : 10
             });
         });
     });
@@ -227,6 +228,16 @@ function renderChart(data) {
             datasets: datasetConfigs
         },
         options: {
+            onClick: (event, elements, chart) => {
+                if (elements.length > 0) {
+                    const firstElement = elements[0];
+                    const datasetIndex = firstElement.datasetIndex;
+                    const dataset = chart.data.datasets[datasetIndex];
+                    if (dataset && dataset.originalName) {
+                        window.location.href = `details.html?method=${encodeURIComponent(dataset.originalName)}`;
+                    }
+                }
+            },
             interaction: {
                 mode: 'nearest',
                 intersect: false,
@@ -287,8 +298,18 @@ function renderChart(data) {
                             // Collapse
                             ds.data[0].x = ds.baseX;
                             ds.data[0].y = ds.baseY;
-                            ds.label = ds.clusterName;
-                            ds.pointRadius = ds.isCluster ? 14 : 8; // Larger size for collapsed cluster core
+                            if (ds.isCluster) {
+                                if (ds.itemIndex === 0) {
+                                    ds.label = ds.clusterName;
+                                    ds.pointRadius = 14; // Larger size for collapsed cluster core
+                                } else {
+                                    ds.label = "";
+                                    ds.pointRadius = 0; // Hide other cluster members
+                                }
+                            } else {
+                                ds.label = ds.originalName;
+                                ds.pointRadius = 8;
+                            }
                         }
                     });
                     
@@ -330,7 +351,11 @@ function renderChart(data) {
                         weight: '600'
                     },
                     formatter: function(value, context) {
-                        return context.dataset.label;
+                        const ds = context.dataset;
+                        if (ds.pointRadius === 0) {
+                            return null;
+                        }
+                        return ds.label;
                     }
                 },
                 legend: {
