@@ -1,39 +1,36 @@
-# Partial Charges Review - Updates Walkthrough
+# Walkthrough: ACC III Upgrade, CLI Integration & Responsive Design
 
-I have successfully completed the tasks to enhance the web application for the partial charge methods review. Here is a walkthrough of the changes and new features.
+I have successfully implemented all requirements. Below is a detailed walkthrough of the changes made and how they were verified.
 
-## 1. Centralized Data Management
-We moved all data for the 100 methods out of `script.js` and into a centralized `data.js` file. This allows multiple pages across the static site to access the exact same dataset without duplication.
+## 1. Upgraded to ACC III
+- **Centralized Data Updates (`data.js`)**:
+  - Renamed legacy `"Atomic Charge Calculator II"` references to `"Atomic Charge Calculator III"` or `"ACC III Web"`.
+  - Swapped out web server labels to ensure standard, consistent version naming.
 
-### Metadata & References Verification
-During the creation of `data.js`, we did a broad pass checking and filling out the references (DOIs) and repository links for the various methods. 
-* Many older empirical methods without straightforward repositories are correctly left gracefully as `N/A`.
-* If a method lacks a DOI or repo, the UI will simply omit the link rather than showing a broken or ugly `N/A` button.
+## 2. Integrated Tomáš Raček's ChargeFW2 (CLI) Links
+- **Computational Core Integration**:
+  - Since many empirical methods (including `EEM`, `SQE`, `ACKS2`, `SQE+qp`, `Gasteiger (PEOE)`, and `αCharges`) can be run in the command line using the binary compiled from Tomáš Raček's engine, we integrated `ChargeFW2 (CLI)` links into the database.
+  - The repository points to `https://github.com/sb-ncbr/ChargeFW2`.
+- **UI Presentation**:
+  - **Main Dashboard**: The table's "Resources" column now renders a terminal icon (`fa-terminal`) and a `ChargeFW2 (CLI)` link for supported methods, letting users download the command-line tool directly from the list.
+  - **Method Profile Pages**: The details page displays the CLI button alongside the web server button, making the distinction between web UI and local binary calculations clear.
+  - **Method Descriptions**: Added descriptions describing how `ChargeFW2` serves as the computational core binary used in the ACC III backend.
 
-## 2. Category Filters Integration
-As requested, the `Category` column has been entirely removed from the data table.
-Instead, we implemented a persistent **Filter Bar** at the top of `index.html`. 
+## 3. Responsive Layout Design
+- **CSS Glassmorphism & Media Queries (`style.css`)**:
+  - Created a global `.glass-container` class to manage uniform background blur, transparency, borders, and shadows.
+  - Standardized `.details-container` and `.chart-container` to adapt fluidly to small screen sizes.
+  - Added media queries for screen breakpoints (`1024px`, `768px`, and `480px`):
+    - **Control Rows & Filters**: Filters and search inputs stack vertically and span 100% width on mobile screens for easy tapping.
+    - **Responsive Chart.js**: Scaled container heights (`400px` on tablets, `320px` on mobile) to avoid layout overflow.
+    - **Dynamic Chart Tick Labels**: In `script.js`, scale callbacks dynamically inspect the screen size to render shorter labels (e.g. `O(N)` instead of `O(N) (Extremely Fast)`, `3D Resp.` instead of `3D Highly Responsive`) to prevent overlapping ticks on mobile screens.
+    - **Profile Grid**: The 6-card grid wraps cleanly into a 1-column layout on phones and 2-column on tablets.
+    - **Outbound Link Buttons**: Buttons expand to full width on mobile viewports for enhanced touch ergonomics.
 
-Users can now quickly drill down into categories such as:
-* **Quantum Analysis**
-* **MD - Biomolecular**
-* **MD - Materials**
-* **Cheminformatics**
-* **Reactivity**
-* **Machine Learning**
-
-Clicking any filter button dynamically updates both the table and the clustering chart in real-time, working seamlessly alongside the text search.
-
-## 3. Dynamic Detail Subpages
-To prevent needing to maintain 100 separate HTML files for each method, a dynamic template system was created using vanilla JavaScript.
-
-* **`details.html`**: A sleek, modern template file designed to show a comprehensive profile for a specific method.
-* **`details.js`**: Parses the `?method=MethodName` parameter from the URL, finds the matching record from `data.js`, and dynamically injects the stats (Speed, Quality, Reactivity), descriptions, and outbound reference links.
-* The method names in the main table have been converted to links. Clicking on a method like **[RESP](file:///C:/Users/krapn/Dropbox/Antigravity/Partial%20charges%20review/index.html)** will seamlessly take you to its detailed profile page.
-
-## Testing & Verification
-Since this application runs without a backend (Node.js), you can test everything directly in your browser:
-1. Open [index.html](file:///C:/Users/krapn/Dropbox/Antigravity/Partial%20charges%20review/index.html) in any modern browser.
-2. Click the new Category filter buttons at the top to see the table and chart respond instantly.
-3. Click on the name of any method (e.g., `Mulliken`) to be taken to its dedicated subpage.
-4. Verify the external "Paper" and "Repository" links on both the main dashboard and the subpages!
+## Verification & Deployment
+1. **Layout & Interaction**:
+   - Checked index and details layouts at different window widths. Table headers, chart tick labels, filters, and cards reflow beautifully.
+   - Verified that the new description and terminal icon links for `ChargeFW2 (CLI)` are functional.
+2. **Git Commit & Push**:
+   - Successfully committed all 7 modified files (`README.md`, `data.js`, `details.html`, `details.js`, `index.html`, `script.js`, and `style.css`) and pushed them to the remote repository.
+   - Pushed commit: `be525ce` to `main` branch.
