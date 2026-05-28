@@ -8,6 +8,7 @@ let currentData = [...methodsData];
 let currentSort = { column: null, direction: 'asc' };
 let currentCategoryFilter = 'all';
 let chartInstance = null;
+let lockedExpandedClusterId = null;
 
 function getSpeedClass(level) {
     if (level === 'fast') return 'speed-fast';
@@ -326,11 +327,45 @@ function renderChart(data) {
     Chart.defaults.color = '#475569';
     Chart.defaults.font.family = "'Inter', sans-serif";
 
+    // Custom plugin to draw connecting dashed lines from centroid to petals when expanded
+    const clusterLinesPlugin = {
+        id: 'clusterLines',
+        afterDatasetsDraw: (chart) => {
+            const ctx = chart.ctx;
+            const datasets = chart.data.datasets;
+            
+            datasets.forEach(ds => {
+                if (ds.isCluster && ds.pointRadius > 0) {
+                    const currentX = ds.data[0].x;
+                    const currentY = ds.data[0].y;
+                    
+                    // If the petal is expanded (i.e. not at base coordinate)
+                    if (currentX !== ds.baseX || currentY !== ds.baseY) {
+                        const pixelCenterX = chart.scales.x.getPixelForValue(ds.baseX);
+                        const pixelCenterY = chart.scales.y.getPixelForValue(ds.baseY);
+                        const pixelPetalX = chart.scales.x.getPixelForValue(currentX);
+                        const pixelPetalY = chart.scales.y.getPixelForValue(currentY);
+                        
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(pixelCenterX, pixelCenterY);
+                        ctx.lineTo(pixelPetalX, pixelPetalY);
+                        ctx.strokeStyle = ds.borderColor;
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([4, 4]); // tech-style dashed lines
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            });
+        }
+    };
+
     let currentHoveredCluster = null;
 
     chartInstance = new Chart(ctx, {
         type: 'scatter',
-        plugins: [ChartDataLabels],
+        plugins: [ChartDataLabels, clusterLinesPlugin],
         data: {
             datasets: datasetConfigs
         },
@@ -340,8 +375,77 @@ function renderChart(data) {
                     const firstElement = elements[0];
                     const datasetIndex = firstElement.datasetIndex;
                     const dataset = chart.data.datasets[datasetIndex];
-                    if (dataset && dataset.originalName) {
-                        window.location.href = `details.html?method=${encodeURIComponent(dataset.originalName)}`;
+                    
+                    if (dataset) {
+                        if (dataset.isCluster) {
+                            const isCurrentlyExpanded = (dataset.clusterId === currentHoveredCluster);
+                            
+                            // If not expanded, or not currently locked, lock it!
+                            if (!isCurrentlyExpanded || dataset.clusterId !== lockedExpandedClusterId) {
+                                lockedExpandedClusterId = dataset.clusterId;
+                                currentHoveredCluster = dataset.clusterId; // Force expanded state
+                                
+                                // Expand this cluster and collapse all others
+                                chart.data.datasets.forEach(ds => {
+                                    if (ds.clusterId === lockedExpandedClusterId) {
+                                        ds.data[0].x = ds.expandedX;
+                                        ds.data[0].y = ds.expandedY;
+                                        ds.label = ds.originalName;
+                                        ds.pointRadius = 8;
+                                    } else {
+                                        ds.data[0].x = ds.baseX;
+                                        ds.data[0].y = ds.baseY;
+                                        if (ds.isCluster) {
+                                            if (ds.itemIndex === 0) {
+                                                ds.label = ds.clusterName;
+                                                ds.pointRadius = 14;
+                                            } else {
+                                                ds.label = "";
+                                                ds.pointRadius = 0;
+                                            }
+                                        } else {
+                                            ds.label = ds.originalName;
+                                            ds.pointRadius = 8;
+                                        }
+                                    }
+                                });
+                                chart.update('none');
+                            } else {
+                                // If already expanded and locked, clicking navigates to the detail page
+                                if (dataset.originalName) {
+                                    window.location.href = `details.html?method=${encodeURIComponent(dataset.originalName)}`;
+                                }
+                            }
+                        } else {
+                            // Non-cluster (single node): navigate directly
+                            if (dataset.originalName) {
+                                window.location.href = `details.html?method=${encodeURIComponent(dataset.originalName)}`;
+                            }
+                        }
+                    }
+                } else {
+                    // Clicked empty space: reset locked state and collapse any expanded clusters
+                    if (lockedExpandedClusterId !== null) {
+                        lockedExpandedClusterId = null;
+                        currentHoveredCluster = null;
+                        
+                        chart.data.datasets.forEach(ds => {
+                            ds.data[0].x = ds.baseX;
+                            ds.data[0].y = ds.baseY;
+                            if (ds.isCluster) {
+                                if (ds.itemIndex === 0) {
+                                    ds.label = ds.clusterName;
+                                    ds.pointRadius = 14;
+                                } else {
+                                    ds.label = "";
+                                    ds.pointRadius = 0;
+                                }
+                            } else {
+                                ds.label = ds.originalName;
+                                ds.pointRadius = 8;
+                            }
+                        });
+                        chart.update('none');
                     }
                 }
             },
@@ -390,9 +494,12 @@ function renderChart(data) {
                     }
                 }
 
+                // If a cluster is locked, force that one to stay open unless we hover over a different cluster
+                let activeClusterId = nextClusterId || lockedExpandedClusterId;
+
                 // 3. Apply state changes if needed
-                if (nextClusterId !== currentHoveredCluster) {
-                    currentHoveredCluster = nextClusterId;
+                if (activeClusterId !== currentHoveredCluster) {
+                    currentHoveredCluster = activeClusterId;
                     
                     chart.data.datasets.forEach(ds => {
                         if (currentHoveredCluster && ds.clusterId === currentHoveredCluster) {
