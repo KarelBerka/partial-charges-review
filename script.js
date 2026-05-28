@@ -143,25 +143,112 @@ function renderChart(data) {
         chartInstance.destroy();
     }
 
-    // Group data into clusters
+    // Helper to determine the family of a method based on its name
+    function getMethodFamily(name) {
+        const lowerName = name.toLowerCase();
+        
+        // Force Field families
+        if (lowerName.includes("amber") || lowerName.includes("ff99") || lowerName.includes("ff03") || lowerName.includes("ff98")) {
+            return "AMBER Force Field";
+        }
+        if (lowerName.includes("charmm")) {
+            return "CHARMM Force Field";
+        }
+        if (lowerName.includes("gromos")) {
+            return "GROMOS Force Field";
+        }
+        if (lowerName.includes("opls")) {
+            return "OPLS Force Field";
+        }
+        if (lowerName.includes("trappe")) {
+            return "TraPPE Force Field";
+        }
+        
+        // Chemical/Computational families
+        if (/^cm[1-5](m)?\b/i.test(lowerName) || lowerName.startsWith("cm ")) {
+            return "Charge Model (CM)";
+        }
+        if (lowerName.includes("resp") || lowerName === "repa" || lowerName === "recep") {
+            return "RESP Protocol";
+        }
+        if (lowerName.includes("gasteiger") || lowerName.includes("peoe")) {
+            return "Gasteiger (PEOE)";
+        }
+        if (lowerName.includes("xtb")) {
+            return "GFN-xTB Family";
+        }
+        if (lowerName.includes("hirshfeld")) {
+            return "Hirshfeld Partitioning";
+        }
+        if (lowerName.includes("chelp")) {
+            return "CHELP/CHELPG ESP";
+        }
+        if (lowerName.includes("qeq") || lowerName.includes("eqeq")) {
+            return "Charge Equilibration (QEq)";
+        }
+        if (lowerName.includes("eem") || lowerName.includes("smea") || lowerName === "eeq") {
+            return "Electronegativity Equalization (EEM)";
+        }
+        if (lowerName.includes("bader") || lowerName.includes("qtaim") || lowerName === "aim") {
+            return "Atoms in Molecules (AIM)";
+        }
+        
+        return null;
+    }
+
+    // Precalculate average (centroid) coordinates for active families to keep cluster centers neat
+    const familyCenters = {};
+    const familyCounts = {};
+    data.forEach(method => {
+        const family = getMethodFamily(method.name);
+        if (family) {
+            if (!familyCenters[family]) {
+                familyCenters[family] = { x: 0, y: 0 };
+                familyCounts[family] = 0;
+            }
+            familyCenters[family].x += method.chartCoord.x;
+            familyCenters[family].y += method.chartCoord.y;
+            familyCounts[family]++;
+        }
+    });
+
+    Object.keys(familyCenters).forEach(family => {
+        familyCenters[family].x /= familyCounts[family];
+        familyCenters[family].y /= familyCounts[family];
+        // Round to nearest 0.25 precision for neat layout
+        familyCenters[family].x = Math.round(familyCenters[family].x * 4) / 4;
+        familyCenters[family].y = Math.round(familyCenters[family].y * 4) / 4;
+    });
+
+    // Group data into clusters (either by defined family or spatial grid coordinate)
     const clusters = {};
     data.forEach((method, index) => {
-        // Group by 0.25 precision to compact points slightly more aggressively
-        const cx = Math.round(method.chartCoord.x * 4) / 4;
-        const cy = Math.round(method.chartCoord.y * 4) / 4;
-        const quality = method.qualityLevel || 'basic';
-        // Only group if they share the same quality level (background color)
-        const key = `${cx},${cy},${quality}`;
+        const family = getMethodFamily(method.name);
+        let cx, cy;
+        let clusterId;
         
-        if (!clusters[key]) {
-            clusters[key] = {
-                id: key,
+        if (family) {
+            cx = familyCenters[family].x;
+            cy = familyCenters[family].y;
+            clusterId = `family:${family}`;
+        } else {
+            // Fallback: group by 0.25 precision grid
+            cx = Math.round(method.chartCoord.x * 4) / 4;
+            cy = Math.round(method.chartCoord.y * 4) / 4;
+            const quality = method.qualityLevel || 'basic';
+            clusterId = `grid:${cx},${cy},${quality}`;
+        }
+        
+        if (!clusters[clusterId]) {
+            clusters[clusterId] = {
+                id: clusterId,
                 baseX: cx,
                 baseY: cy,
-                items: []
+                items: [],
+                name: family ? family : method.name
             };
         }
-        clusters[key].items.push(method);
+        clusters[clusterId].items.push(method);
     });
 
     const datasetConfigs = [];
@@ -201,7 +288,18 @@ function renderChart(data) {
                 borderColor = 'rgba(59, 130, 246, 1)';
             }
             
-            const clusterLabel = count > 1 ? `${method.name} (+${count-1} in cluster)` : method.name;
+            // Set the label: if it's a family or grid cluster, customize it
+            const isFamilyCluster = cluster.id.startsWith("family:");
+            let clusterLabel = "";
+            if (count > 1) {
+                if (isFamilyCluster) {
+                    clusterLabel = `${cluster.name} (+${count-1} methods)`;
+                } else {
+                    clusterLabel = `${method.name} (+${count-1} in cluster)`;
+                }
+            } else {
+                clusterLabel = method.name;
+            }
 
             datasetConfigs.push({
                 clusterId: cluster.id,
