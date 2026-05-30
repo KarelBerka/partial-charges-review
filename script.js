@@ -10,6 +10,75 @@ let currentCategoryFilter = 'all';
 let chartInstance = null;
 let lockedExpandedClusterId = null;
 
+let showAncestralLinks = true;
+let showAllLabels = false;
+
+const majorMethods = [
+    "Mulliken",
+    "NBO",
+    "RESP",
+    "CHELPG",
+    "Hirshfeld / VDD",
+    "Bader (QTAIM)",
+    "Gasteiger (PEOE)",
+    "MMFF94",
+    "Charge Equilibration (QEq)",
+    "EEM",
+    "AM1-BCC",
+    "GFN-xTB",
+    "SchNet (GNN)",
+    "ALIGNN (GNN)",
+    "ACKS2 (Svobodová implementation)",
+    "SQE+qp",
+    "αCharges (SQE+qp)",
+    "PDBCharges (GFN1-xTB)"
+];
+
+const ancestralLinks = [
+    // CM Family
+    { from: "CM1", to: "CM2" },
+    { from: "CM2", to: "CM3" },
+    { from: "CM3", to: "CM4" },
+    { from: "CM4", to: "CM5" },
+    
+    // RESP Family
+    { from: "Merz-Kollman (MK)", to: "RESP" },
+    { from: "RESP", to: "RESP2" },
+    { from: "RESP2", to: "RESP3" },
+    
+    // Hirshfeld Family
+    { from: "Hirshfeld / VDD", to: "Iterative Hirshfeld (Hirshfeld-I)" },
+    { from: "Iterative Hirshfeld (Hirshfeld-I)", to: "Hirshfeld-e" },
+    { from: "Hirshfeld-e", to: "Fractional Hirshfeld" },
+    { from: "Hirshfeld / VDD", to: "VDD (Bickelhaupt)" },
+    
+    // Mulliken Family
+    { from: "Mulliken", to: "Löwdin" },
+    { from: "Mulliken", to: "Mulliken-GMA" },
+    { from: "Mulliken", to: "NBO" },
+    
+    // EEM Family
+    { from: "EEM", to: "EEM_Mulliken (NEEMP)" },
+    { from: "EEM", to: "EEM_NPA (NEEMP)" },
+    { from: "EEM", to: "EEM_AIM (NEEMP)" },
+    
+    // SQE Family
+    { from: "SQE (Split-Charge Equilibration)", to: "SQE+qp" },
+    { from: "SQE+qp", to: "αCharges (SQE+qp)" },
+    
+    // QEq Family
+    { from: "Charge Equilibration (QEq)", to: "EQeq" },
+    { from: "Charge Equilibration (QEq)", to: "G-QEq" },
+    { from: "Charge Equilibration (QEq)", to: "SMD/C-QEq" },
+    
+    // xTB Family
+    { from: "GFN-xTB", to: "GFN2-xTB" },
+    
+    // Gasteiger Family
+    { from: "Gasteiger (PEOE)", to: "MPEOE" },
+    { from: "Gasteiger (PEOE)", to: "Gasteiger-Hückel" }
+];
+
 function getSpeedClass(level) {
     if (level === 'fast') return 'speed-fast';
     if (level === 'med') return 'speed-med';
@@ -361,11 +430,70 @@ function renderChart(data) {
         }
     };
 
+    // Custom plugin to draw background connecting lines and arrows for ancestral links (lineages)
+    const ancestralLinesPlugin = {
+        id: 'ancestralLines',
+        beforeDatasetsDraw: (chart) => {
+            if (!showAncestralLinks) return;
+            
+            const ctx = chart.ctx;
+            const datasets = chart.data.datasets;
+            
+            ancestralLinks.forEach(link => {
+                const dsFrom = datasets.find(d => d.originalName === link.from);
+                const dsTo = datasets.find(d => d.originalName === link.to);
+                
+                if (dsFrom && dsTo) {
+                    const fromX = dsFrom.data[0].x;
+                    const fromY = dsFrom.data[0].y;
+                    const toX = dsTo.data[0].x;
+                    const toY = dsTo.data[0].y;
+                    
+                    const isFromVisible = !dsFrom.isCluster || dsFrom.itemIndex === 0 || dsFrom.data[0].x !== dsFrom.baseX;
+                    const isToVisible = !dsTo.isCluster || dsTo.itemIndex === 0 || dsTo.data[0].x !== dsTo.baseX;
+                    
+                    if (isFromVisible && isToVisible) {
+                        const pixelFromX = chart.scales.x.getPixelForValue(fromX);
+                        const pixelFromY = chart.scales.y.getPixelForValue(fromY);
+                        const pixelToX = chart.scales.x.getPixelForValue(toX);
+                        const pixelToY = chart.scales.y.getPixelForValue(toY);
+                        
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(pixelFromX, pixelFromY);
+                        ctx.lineTo(pixelToX, pixelToY);
+                        
+                        ctx.lineWidth = 2.0;
+                        ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)'; // Indigo-400 with opacity
+                        ctx.setLineDash([5, 5]);
+                        ctx.stroke();
+                        
+                        // Draw arrow at 70% along the line path
+                        const angle = Math.atan2(pixelToY - pixelFromY, pixelToX - pixelFromX);
+                        const arrowLength = 7;
+                        const targetX = pixelFromX + (pixelToX - pixelFromX) * 0.7;
+                        const targetY = pixelFromY + (pixelToY - pixelFromY) * 0.7;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(targetX, targetY);
+                        ctx.lineTo(targetX - arrowLength * Math.cos(angle - Math.PI / 6), targetY - arrowLength * Math.sin(angle - Math.PI / 6));
+                        ctx.lineTo(targetX - arrowLength * Math.cos(angle + Math.PI / 6), targetY - arrowLength * Math.sin(angle + Math.PI / 6));
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(99, 102, 241, 0.6)';
+                        ctx.fill();
+                        
+                        ctx.restore();
+                    }
+                }
+            });
+        }
+    };
+
     let currentHoveredCluster = null;
 
     chartInstance = new Chart(ctx, {
         type: 'scatter',
-        plugins: [ChartDataLabels, clusterLinesPlugin],
+        plugins: [ChartDataLabels, clusterLinesPlugin, ancestralLinesPlugin],
         data: {
             datasets: datasetConfigs
         },
@@ -569,7 +697,15 @@ function renderChart(data) {
                         if (ds.pointRadius === 0) {
                             return null;
                         }
-                        return ds.label;
+                        if (showAllLabels) {
+                            return ds.label;
+                        }
+                        const isMajor = majorMethods.includes(ds.originalName);
+                        const isHovered = (currentHoveredCluster && ds.clusterId === currentHoveredCluster);
+                        if (isMajor || isHovered) {
+                            return ds.label;
+                        }
+                        return null;
                     }
                 },
                 legend: {
@@ -665,6 +801,27 @@ function applyFilters() {
 }
 
 searchInput.addEventListener('input', applyFilters);
+
+const toggleLinksCheckbox = document.getElementById('toggleLinks');
+const toggleLabelsCheckbox = document.getElementById('toggleLabels');
+
+if (toggleLinksCheckbox) {
+    toggleLinksCheckbox.addEventListener('change', (e) => {
+        showAncestralLinks = e.target.checked;
+        if (chartInstance) {
+            chartInstance.update();
+        }
+    });
+}
+
+if (toggleLabelsCheckbox) {
+    toggleLabelsCheckbox.addEventListener('change', (e) => {
+        showAllLabels = e.target.checked;
+        if (chartInstance) {
+            chartInstance.update();
+        }
+    });
+}
 
 const filterBtns = document.querySelectorAll('.filter-btn');
 filterBtns.forEach(btn => {
