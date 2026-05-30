@@ -386,6 +386,8 @@ function renderChart(data) {
                 data: [{ x: cluster.baseX, y: cluster.baseY }],
                 backgroundColor: bgColor,
                 borderColor: borderColor,
+                originalBgColor: bgColor,
+                originalBorderColor: borderColor,
                 borderWidth: 2,
                 pointRadius: count > 1 ? (i === 0 ? 14 : 0) : 8,
                 pointHoverRadius: count > 1 ? (i === 0 ? 14 : 10) : 10
@@ -438,6 +440,7 @@ function renderChart(data) {
             
             const ctx = chart.ctx;
             const datasets = chart.data.datasets;
+            const activeClusterId = currentHoveredCluster || lockedExpandedClusterId;
             
             ancestralLinks.forEach(link => {
                 const dsFrom = datasets.find(d => d.originalName === link.from);
@@ -458,13 +461,28 @@ function renderChart(data) {
                         const pixelToX = chart.scales.x.getPixelForValue(toX);
                         const pixelToY = chart.scales.y.getPixelForValue(toY);
                         
+                        const isFromActive = dsFrom.clusterId === activeClusterId;
+                        const isToActive = dsTo.clusterId === activeClusterId;
+                        
+                        let strokeColor = 'rgba(99, 102, 241, 0.4)';
+                        let fillColor = 'rgba(99, 102, 241, 0.6)';
+                        if (activeClusterId) {
+                            if (isFromActive || isToActive) {
+                                strokeColor = 'rgba(99, 102, 241, 0.7)';
+                                fillColor = 'rgba(99, 102, 241, 0.8)';
+                            } else {
+                                strokeColor = 'rgba(203, 213, 225, 0.15)';
+                                fillColor = 'rgba(203, 213, 225, 0.15)';
+                            }
+                        }
+                        
                         ctx.save();
                         ctx.beginPath();
                         ctx.moveTo(pixelFromX, pixelFromY);
                         ctx.lineTo(pixelToX, pixelToY);
                         
                         ctx.lineWidth = 2.0;
-                        ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)'; // Indigo-400 with opacity
+                        ctx.strokeStyle = strokeColor;
                         ctx.setLineDash([5, 5]);
                         ctx.stroke();
                         
@@ -479,7 +497,7 @@ function renderChart(data) {
                         ctx.lineTo(targetX - arrowLength * Math.cos(angle - Math.PI / 6), targetY - arrowLength * Math.sin(angle - Math.PI / 6));
                         ctx.lineTo(targetX - arrowLength * Math.cos(angle + Math.PI / 6), targetY - arrowLength * Math.sin(angle + Math.PI / 6));
                         ctx.closePath();
-                        ctx.fillStyle = 'rgba(99, 102, 241, 0.6)';
+                        ctx.fillStyle = fillColor;
                         ctx.fill();
                         
                         ctx.restore();
@@ -545,6 +563,23 @@ function renderChart(data) {
 
     let currentHoveredCluster = null;
 
+    function updateChartColors(chart, activeClusterId) {
+        chart.data.datasets.forEach(ds => {
+            if (activeClusterId) {
+                if (ds.clusterId === activeClusterId) {
+                    ds.backgroundColor = ds.originalBgColor;
+                    ds.borderColor = ds.originalBorderColor;
+                } else {
+                    ds.backgroundColor = 'rgba(203, 213, 225, 0.25)'; // Grayish fill
+                    ds.borderColor = 'rgba(148, 163, 184, 0.35)'; // Grayish border
+                }
+            } else {
+                ds.backgroundColor = ds.originalBgColor;
+                ds.borderColor = ds.originalBorderColor;
+            }
+        });
+    }
+
     chartInstance = new Chart(ctx, {
         type: 'scatter',
         plugins: [ChartDataLabels, clusterLinesPlugin, ancestralLinesPlugin, clusterHaloPlugin],
@@ -591,6 +626,7 @@ function renderChart(data) {
                                         }
                                     }
                                 });
+                                updateChartColors(chart, lockedExpandedClusterId);
                                 chart.update('none');
                             } else {
                                 // If already expanded and locked, clicking navigates to the detail page
@@ -627,6 +663,7 @@ function renderChart(data) {
                                 ds.pointRadius = 8;
                             }
                         });
+                        updateChartColors(chart, null);
                         chart.update('none');
                     }
                 }
@@ -709,6 +746,7 @@ function renderChart(data) {
                         }
                     });
                     
+                    updateChartColors(chart, currentHoveredCluster);
                     chart.update('none'); // Instant update without animation
                 }
             },
@@ -740,7 +778,16 @@ function renderChart(data) {
                         return y < 2 ? 'start' : 'end';
                     },
                     offset: 6,
-                    color: '#0f172a',
+                    color: function(context) {
+                        const activeClusterId = currentHoveredCluster || lockedExpandedClusterId;
+                        if (activeClusterId) {
+                            if (context.dataset.clusterId === activeClusterId) {
+                                return '#0f172a';
+                            }
+                            return 'rgba(148, 163, 184, 0.45)';
+                        }
+                        return '#0f172a';
+                    },
                     font: {
                         family: "'Inter', sans-serif",
                         size: 11,
