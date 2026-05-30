@@ -19,6 +19,14 @@ I have successfully updated the comparison map to make it clean, highly readable
   - **Dynamic Tracking**: The lines and arrows dynamically track the points as they expand ("flower petal" packing) or collapse, keeping the visual links intact during interaction.
   - Added a **"Show Ancestral Links"** checkbox control to easily toggle connection lines on/off.
 
-## 3. Responsive Styling Controls
+## 3. Group Selection Background Halo
+* **Problem**: When a group of clustered methods was expanded, it could be difficult to distinguish which points belonged to the active selection compared to neighboring points.
+* **Solution**:
+  - Created a custom Chart.js plugin (`clusterHaloPlugin`) that runs during the background draw phase.
+  - Draws a soft, semi-transparent background circle (halo) centered on the selected cluster's core coordinates.
+  - **Dynamic Sizing**: The halo dynamically calculates the distance to the outermost expanded petal in that cluster to perfectly enclose the entire expanded group.
+  - **Quality Coordinated**: The circle's fill and border colors match the quality level of the selected cluster (Green for High, Blue for Moderate, Amber for Basic) with a dashed border for a clean, modern aesthetic.
+
+## 4. Responsive Styling Controls
 * Cleaned up and moved the layout rules for the map controls into `style.css`.
 * The control checkboxes stack vertically and align neatly on mobile/tablet viewports.

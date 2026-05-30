@@ -489,11 +489,65 @@ function renderChart(data) {
         }
     };
 
+    // Custom plugin to draw a soft selection halo/circle behind the expanded cluster
+    const clusterHaloPlugin = {
+        id: 'clusterHalo',
+        beforeDatasetsDraw: (chart) => {
+            const ctx = chart.ctx;
+            const datasets = chart.data.datasets;
+            
+            const activeClusterId = currentHoveredCluster || lockedExpandedClusterId;
+            if (!activeClusterId) return;
+            
+            // Find one dataset in this cluster to get its baseX, baseY, and quality color
+            const sampleDs = datasets.find(d => d.clusterId === activeClusterId && d.isCluster);
+            if (!sampleDs) return; 
+            
+            const pixelCenterX = chart.scales.x.getPixelForValue(sampleDs.baseX);
+            const pixelCenterY = chart.scales.y.getPixelForValue(sampleDs.baseY);
+            
+            // Find max distance to expanded petals
+            let maxPixelRadius = 30; 
+            datasets.forEach(ds => {
+                if (ds.clusterId === activeClusterId) {
+                    const petalPixelX = chart.scales.x.getPixelForValue(ds.expandedX);
+                    const petalPixelY = chart.scales.y.getPixelForValue(ds.expandedY);
+                    const dist = Math.sqrt(Math.pow(petalPixelX - pixelCenterX, 2) + Math.pow(petalPixelY - pixelCenterY, 2));
+                    if (dist > maxPixelRadius) {
+                        maxPixelRadius = dist;
+                    }
+                }
+            });
+            
+            const finalRadius = maxPixelRadius + 18; // Add some padding around the outermost petal
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(pixelCenterX, pixelCenterY, finalRadius, 0, 2 * Math.PI);
+            
+            let colorBase = 'rgba(59, 130, 246'; // Moderate - Blue default
+            if (sampleDs.borderColor.includes('16, 185, 129')) {
+                colorBase = 'rgba(16, 185, 129'; // High - Green
+            } else if (sampleDs.borderColor.includes('245, 158, 11')) {
+                colorBase = 'rgba(245, 158, 11'; // Basic - Amber
+            }
+            
+            ctx.fillStyle = `${colorBase}, 0.06)`;
+            ctx.strokeStyle = `${colorBase}, 0.25)`;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]); // Dashed border for high-tech aesthetic
+            
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+    };
+
     let currentHoveredCluster = null;
 
     chartInstance = new Chart(ctx, {
         type: 'scatter',
-        plugins: [ChartDataLabels, clusterLinesPlugin, ancestralLinesPlugin],
+        plugins: [ChartDataLabels, clusterLinesPlugin, ancestralLinesPlugin, clusterHaloPlugin],
         data: {
             datasets: datasetConfigs
         },
